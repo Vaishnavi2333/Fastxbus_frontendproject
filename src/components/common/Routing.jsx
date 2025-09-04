@@ -7,7 +7,7 @@ import AdminDashboard from "../admin/AdminDashboard";
 import { UserProfilePage } from "../user/UserProfilePage";
 import { BusOpProfile } from "../busoperator/BusOpProfile";
 import AddBus from "../busoperator/AddBus";
-import AddRoute from "../busoperator/AddRoute";
+
 import AddTrip from "../busoperator/AddTrip";
 import { SearchBus } from "../user/SearchBus";
 import { BookingPage } from "../user/BookingPage";
@@ -21,6 +21,13 @@ import { HomePage } from "./HomePage";
 import BusOperatorPage from "../admin/BusOperatorPage";
 import UserManagementPage from "../admin/UserManagementPage";
 import AdminBookingsPage from "../admin/AdminBookingsPage";
+import AddRoute from "../BusOperator/AddRoute";
+import BusOperatorRoutes from "../busoperator/BusOperatorRoutes";
+import BusOperatorTrips from "../busoperator/BusOperatorTrips";
+import AdminRoutes from "../admin/AdminRoutes";
+import AdminTrips from "../admin/AdminTrips";
+import AdminBusManagement from "../admin/AdminBusManagement";
+import BusOperatorApproval from "../admin/BusOperatorApproval";
 
 export function Routing() {
   const [username, setUsername] = useState(localStorage.getItem("username") || "");
@@ -122,7 +129,7 @@ export function Routing() {
           <Route path="/userprofile" element={<UserProfilePage />} />
           <Route path="/busopprofile" element={<BusOpProfile />} />
           <Route path="/addbus" element={<AddBus />} />
-          <Route path="/addroute" element={<AddRoute />} />
+          <Route path="/addroute" element={<AddRoute></AddRoute>}></Route>
           <Route path="/addtrip" element={<AddTrip />} />
           <Route path="/searchbus" element={<SearchBus />} />
           <Route path="/booking" element={<BookingPage />} />
@@ -134,6 +141,13 @@ export function Routing() {
            <Route path="/bus-operators" element={<BusOperatorPage />} />
            <Route path="/usermanage" element={<UserManagementPage></UserManagementPage>}></Route>
            <Route path="/adminbooking" element={<AdminBookingsPage></AdminBookingsPage>}></Route>
+           <Route path="/routebusop" element={<BusOperatorRoutes></BusOperatorRoutes>}></Route>
+           <Route path="/tripbusop" element={<BusOperatorTrips></BusOperatorTrips>}></Route>
+           <Route path="/adminroute" element={<AdminRoutes></AdminRoutes>}></Route>
+           <Route path="/admintrip" element={<AdminTrips></AdminTrips>}></Route>
+           <Route path="/adminbus" element={<AdminBusManagement></AdminBusManagement>}></Route>
+           <Route path="/adminviewbusop" element={<BusOperatorPage></BusOperatorPage>}></Route>
+            <Route path="/bus-operator-approvals" element={<BusOperatorApproval />} /> 
         </Routes>
       </div>
     </>

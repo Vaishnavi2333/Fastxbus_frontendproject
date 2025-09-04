@@ -1,5 +1,7 @@
 import { useState } from "react";
 import axiosInstance from "../../http-common";
+import BusService from "../../service/BusService";
+import RouteService from "../../service/RouteService";
 
 export default function ShowBusAndRoute() {
   const [buses, setBuses] = useState([]);
@@ -13,7 +15,7 @@ export default function ShowBusAndRoute() {
 
   const fetchBuses = async () => {
     try {
-      const response = await axiosInstance.get("/bus/getallbus");
+      const response = await BusService.getAllBus();
       setBuses(response.data);
     } catch (err) {
       setError("Failed to fetch buses");
@@ -22,7 +24,7 @@ export default function ShowBusAndRoute() {
 
   const fetchRoutes = async () => {
     try {
-      const response = await axiosInstance.get("/route/getall");
+      const response = await RouteService.getRoutes();
       setRoutes(response.data);
     } catch (err) {
       setError("Failed to fetch routes");

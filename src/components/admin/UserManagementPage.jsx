@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useEffect } from "react";
 import { useNavigate } from "react-router";
-import axiosInstance from "../../http-common";
+
+import UserService from "../../service/UserService";
 export default function UserManagementPage() {
   const [users, setUsers] = useState([]);
   const [userId, setUserId] = useState("");
@@ -18,7 +19,7 @@ export default function UserManagementPage() {
  
   const fetchAllUsers = async () => {
     try {
-      const response = await axiosInstance.get("/userdata/allusers");
+      const response = await UserService.getAllUsers();
       console.log("Raw API Response (all users):", response.data);
 
       let data = response.data;
@@ -51,7 +52,7 @@ export default function UserManagementPage() {
   const fetchUserById = async () => {
     if (!userId) return;
     try {
-      const response = await axiosInstance.get(`/userdata/getuser/${userId}`);
+      const response = await UserService.getUserById(userId);
       console.log("Raw API Response (single user):", response.data);
 
       const u = response.data;
@@ -78,7 +79,7 @@ export default function UserManagementPage() {
     if (!window.confirm("Are you sure you want to delete this user?")) return;
 
     try {
-      const response = await axiosInstance.delete(`/userdata/deleteuser/${id}`);
+      const response = await UserService.deleteUser(id);
       setMessage(response.data);
       setError("");
       fetchAllUsers(); 

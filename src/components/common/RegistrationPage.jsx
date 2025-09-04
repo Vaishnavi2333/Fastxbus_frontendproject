@@ -1,5 +1,7 @@
 import { useState } from "react";
 import AuthService from "../../service/AuthService";
+
+
 export default function RegisterPage() {
   const [role, setRole] = useState("user");
   const [formData, setFormData] = useState({
@@ -11,28 +13,28 @@ export default function RegisterPage() {
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
+const handleRegister = async (e) => {
+  e.preventDefault();
+  setError("");
 
-  const handleRegister = async (e) => {
-    e.preventDefault();
-    setError("");
-
-    try {
-      let response;
-      if (role === "user") {
-        response = await AuthService.registerUser(formData);
-      } else if (role === "busoperator") {
-        response = await AuthService.registerBusOperator(formData);
-      } else {
-        response = await AuthService.registerAdmin(formData);
-      }
-
-      alert(`${role} registered successfully`);
-      console.log(response.data);
-    } catch (err) {
-      console.error(err);
-      setError("Registration failed! Please try again.");
+  try {
+    let response;
+    if (role === "user") {
+      response = await AuthService.registerUser(formData);
+    } else if (role === "busoperator") { 
+      response = await AuthService.registerBusOperator(formData);
+    } else {
+      throw new Error("Invalid role selected"); 
     }
-  };
+
+    alert(`${role} registered successfully`);
+    console.log(response.data);
+  } catch (err) {
+    console.error(err);
+    setError("Registration failed! Please try again.");
+  }
+};
+
 
   return (
     <div
@@ -64,7 +66,7 @@ export default function RegisterPage() {
               >
                  <option value="user">👤 User</option>
               <option value="busoperator">🚌 Bus Operator</option>
-              <option value="admin">🛠️ Admin</option>
+             
               </select>
             </div>
 

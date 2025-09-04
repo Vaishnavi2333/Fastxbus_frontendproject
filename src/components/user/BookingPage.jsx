@@ -1,8 +1,11 @@
 
 import { useNavigate } from "react-router";
 import { useLocation } from "react-router";
-import axiosInstance from "../../http-common";
+
 import { useState } from "react";
+import BookingService from "../../service/BookingService";
+import PaymentService from "../../service/PaymentService";
+
 export function BookingPage() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -22,13 +25,10 @@ export function BookingPage() {
 
   const getTodayDate = () => {
     const today = new Date();
-    const yyyy = today.getFullYear();
-    const mm = String(today.getMonth() + 1).padStart(2, "0");
-    const dd = String(today.getDate()).padStart(2, "0");
-    return `${yyyy}-${mm}-${dd}`;
+    return today.toISOString().split("T")[0]; // yyyy-mm-dd
   };
 
-  const handleCreateBooking = () => {
+  const handleCreateBooking = async () => {
     const bookingDto = {
       userId: parseInt(userId),
       busId: selectedBus.busId,
@@ -41,23 +41,23 @@ export function BookingPage() {
       paymentDone: false,
     };
 
-    axiosInstance
-      .post("/booking/add", bookingDto)
-      .then((res) => {
-        if (res.data && res.data.bookingId) {
-          setBooking({
-            bookingId: res.data.bookingId,
-            totalPrice: res.data.totalPrice,
-          });
-          setError("");
-        } else {
-          setError("Booking failed: invalid server response.");
-        }
-      })
-      .catch(() => setError("Booking failed. Try again."));
+    try {
+      const res = await BookingService.createBooking(bookingDto);
+      if (res.data && res.data.bookingId) {
+        setBooking({
+          bookingId: res.data.bookingId,
+          totalPrice: res.data.totalPrice,
+        });
+        setError("");
+      } else {
+        setError("Booking failed: invalid server response.");
+      }
+    } catch (err) {
+      setError("Booking failed. Try again.");
+    }
   };
 
-  const handlePayment = () => {
+  const handlePayment = async () => {
     if (!booking || !booking.bookingId) {
       setError("Create booking first.");
       return;
@@ -69,15 +69,15 @@ export function BookingPage() {
       paymentMethod: paymentMethod,
     };
 
-    axiosInstance
-      .post("/payment/make", paymentDto)
-      .then((res) => {
-        setPaymentDone(true);
-        setError("");
-        alert("Payment successful!");
-        navigate("/confirmation", { state: { booking: booking, payment: res.data } });
-      })
-      .catch(() => setError("Payment failed. Try again."));
+    try {
+      const res = await PaymentService.makePayment(paymentDto);
+      setPaymentDone(true);
+      setError("");
+      alert("Payment successful!");
+      navigate("/confirmation", { state: { booking: booking, payment: res.data } });
+    } catch (err) {
+      setError("Payment failed. Try again.");
+    }
   };
 
   return (

@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import axiosInstance from "../../http-common";
+import BusOperatorService from "../../service/BusOperatorService";
 
 const AddBus = () => {
   const [bus, setBus] = useState({
@@ -29,8 +29,7 @@ const AddBus = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    axiosInstance
-      .post("/bus/add", bus)
+    BusOperatorService.addBus(bus)
       .then((res) => {
         alert("Bus added successfully!");
         setBus({

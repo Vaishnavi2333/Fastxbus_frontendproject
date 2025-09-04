@@ -1,5 +1,5 @@
 import { useState } from "react";
-import api from "../../http-common";
+import UserService from "../../service/UserService";
 
 export function UserProfilePage() {
   const [formData, setFormData] = useState({
@@ -22,13 +22,12 @@ export function UserProfilePage() {
     setMessage("");
 
     try {
-     
-      const response = await api.post("/userdata/createuser", formData);
-      setMessage("Profile created successfully ");
+      const response = await UserService.createUser(formData);
+      setMessage("Profile created successfully!");
       console.log(response.data);
     } catch (err) {
       console.error(err);
-      setMessage("Error creating profile ");
+      setMessage("Error creating profile.");
     }
   };
 

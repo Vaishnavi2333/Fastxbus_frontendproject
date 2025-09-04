@@ -1,5 +1,8 @@
 import { useState } from "react";
-import axiosInstance from "../../http-common";
+import BusService from "../../service/BusService";
+import RouteService from "../../service/RouteService";
+import TripService from "../../service/TripService";
+
 
 
 export default function AddTrip() {
@@ -18,7 +21,7 @@ export default function AddTrip() {
 
   const fetchBuses = async () => {
     try {
-      const res = await axiosInstance.get("/bus/getallbus");
+      const res = await BusService.getAllBus();
       setBuses(res.data);
     } catch {
       setMessage("Error fetching buses");
@@ -27,7 +30,7 @@ export default function AddTrip() {
 
   const fetchRoutes = async () => {
     try {
-      const res = await axiosInstance.get("/route/getall");
+      const res = await RouteService.getRoutes();
       setRoutes(res.data);
     } catch {
       setMessage("Error fetching routes");
@@ -51,7 +54,7 @@ export default function AddTrip() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axiosInstance.post("/trip/addtrip", trip);
+      await TripService.addTrip(trip);
       setMessage("Trip added successfully!");
       setTrip({
         date: "",

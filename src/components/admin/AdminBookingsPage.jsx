@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import axiosInstance from "../../http-common";
+
 import { format } from "date-fns";
+import BookingService from "../../service/BookingService";
 
 export default function AdminBookingsPage() {
   const [bookings, setBookings] = useState([]);
@@ -12,7 +13,7 @@ export default function AdminBookingsPage() {
 
   const fetchAllBookings = async () => {
     try {
-      const response = await axiosInstance.get("/booking/bookings/summary"); 
+      const response = await BookingService.getBookings();
       setBookings(response.data);
       setError("");
     } catch (err) {

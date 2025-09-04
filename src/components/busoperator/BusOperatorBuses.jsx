@@ -1,7 +1,9 @@
 
 import  { useEffect, useState } from "react";
-import http from "../../http-common";
+import axiosInstance from "../../http-common";
 import { useNavigate } from "react-router";
+import BusService from "../../service/BusService";
+
 
 export default function BusOperatorBuses() {
   const [buses, setBuses] = useState([]);
@@ -13,11 +15,7 @@ export default function BusOperatorBuses() {
   const fetchBuses = async () => {
     try {
       const operatorId = localStorage.getItem("busOpId");
-      const token = localStorage.getItem("token");
-
-      const response = await http.get(`/bus/getbusbyoperator/${operatorId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await BusService.getBusByOpId(operatorId);
       setBuses(response.data);
     } catch (err) {
       console.error(err);
@@ -35,10 +33,7 @@ export default function BusOperatorBuses() {
     if (!window.confirm("Are you sure you want to delete this bus?")) return;
 
     try {
-      const token = localStorage.getItem("token");
-      await http.delete(`/bus/delete/${busId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await BusService.deleteBus(busId);
       setBuses(buses.filter((bus) => bus.busId !== busId));
     } catch (err) {
       console.error(err);
@@ -47,7 +42,7 @@ export default function BusOperatorBuses() {
   };
 
   const handleUpdate = (bus) => {
-    navigate("/addbus", { state: { bus } }); 
+    navigate("/addbus", { state: { bus } });
   };
 
   if (loading) return <p>Loading buses...</p>;
@@ -77,10 +72,10 @@ export default function BusOperatorBuses() {
               <td>{bus.capacity}</td>
               <td>{bus.status}</td>
               <td>
-        {bus.amenities && bus.amenities.length > 0
-          ? bus.amenities.map(a => a.amenityName).join(", ")
-          : "-"}
-      </td>
+                {bus.amenities && bus.amenities.length > 0
+                  ? bus.amenities.map((a) => a.amenityName).join(", ")
+                  : "-"}
+              </td>
               <td>
                 <button
                   className="btn btn-sm btn-warning me-2"
@@ -97,6 +92,11 @@ export default function BusOperatorBuses() {
               </td>
             </tr>
           ))}
+          {buses.length === 0 && !loading && (
+            <tr>
+              <td colSpan="7" className="text-center">No buses found</td>
+            </tr>
+          )}
         </tbody>
       </table>
     </div>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import axiosInstance from "../../http-common";
+
 import { useNavigate } from "react-router";
+import BusOperatorService from "../../service/BusOperatorService";
 
 export default function BusOperatorPage() {
   const [operators, setOperators] = useState([]);
@@ -17,8 +18,12 @@ export default function BusOperatorPage() {
 
   const fetchAllOperators = async () => {
     try {
-      const response = await axiosInstance.get("busopdata/getall");
-      setOperators(response.data);
+      const response = await BusOperatorService.getAllBusOp();
+     
+      const filtered = response.data.filter(
+        (op) => op.name && op.licenceNumber
+      );
+      setOperators(filtered);
     } catch (err) {
       console.error(err);
       setError("Failed to fetch operators.");
@@ -28,9 +33,16 @@ export default function BusOperatorPage() {
   const fetchOperatorById = async () => {
     if (!operatorId) return;
     try {
-      const response = await axiosInstance.get(`busopdata/getbyid/${operatorId}`);
-      setSingleOperator(response.data);
-      setError("");
+      const response = await BusOperatorService.getBusOpById(operatorId);
+      const op = response.data;
+      
+      if (!op.name || !op.licenceNumber) {
+        setSingleOperator(null);
+        setError("Operator profile is incomplete or rejected.");
+      } else {
+        setSingleOperator(op);
+        setError("");
+      }
     } catch (err) {
       console.error(err);
       setError("Operator not found!");
@@ -42,10 +54,9 @@ export default function BusOperatorPage() {
     if (!window.confirm("Are you sure you want to delete this operator?")) return;
 
     try {
-      const response = await axiosInstance.delete(`busopdata/delete/${id}`);
-      setMessage(response.data); 
+      const response = await BusOperatorService.deleteBusOp(id);
+      setMessage(response.data);
       setError("");
-      
       fetchAllOperators();
     } catch (err) {
       console.error(err);
@@ -53,6 +64,11 @@ export default function BusOperatorPage() {
       setMessage("");
     }
   };
+
+ 
+  const filteredOperators = operators.filter(
+    (op) => op.name && op.licenceNumber
+  );
 
   return (
     <div className="container my-5">
@@ -112,7 +128,14 @@ export default function BusOperatorPage() {
             </tr>
           </thead>
           <tbody>
-            {operators.map((op) => (
+            {filteredOperators.length === 0 && (
+              <tr>
+                <td colSpan="10" className="text-center">
+                  No bus operators found
+                </td>
+              </tr>
+            )}
+            {filteredOperators.map((op) => (
               <tr key={op.busOpLoginId}>
                 <td>{op.busOpLoginId}</td>
                 <td>{op.name}</td>

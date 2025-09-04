@@ -9,6 +9,8 @@ export default function BusOperatorDashboard() {
   const handleTrip = () => navigate("/addtrip");
   const handleBookings = () => navigate("/busoperator/bookings"); 
   const handleBuses = () => navigate("/busoperator/buses");
+  const handleViewRoute = () => navigate("/routebusop");
+  const handleViewTrip = () => navigate("/tripbusop");
   return (
     <div className="container mt-5">
       <div className="text-center mb-5">
@@ -75,6 +77,26 @@ export default function BusOperatorDashboard() {
             <p className="card-text">See all buses registered under your account.</p>
             <button className="btn btn-secondary mt-3 w-100" onClick={handleBuses}>
               View Buses
+            </button>
+          </div>
+        </div>
+
+        <div className="col-md-3">
+          <div className="card shadow-sm text-center p-4">
+            <h5 className="card-title">My Routes</h5>
+            <p className="card-text">See all Routes registered under your account.</p>
+            <button className="btn btn-secondary mt-3 w-100" onClick={handleViewRoute}>
+              View routes
+            </button>
+          </div>
+        </div>
+
+        <div className="col-md-3">
+          <div className="card shadow-sm text-center p-4">
+            <h5 className="card-title">My Trips</h5>
+            <p className="card-text">See all Trips registered under your account.</p>
+            <button className="btn btn-secondary mt-3 w-100" onClick={handleViewTrip}>
+              View trips
             </button>
           </div>
         </div>

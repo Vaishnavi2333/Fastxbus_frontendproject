@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import axiosInstance from "../../http-common"; 
+
 import { format } from 'date-fns';
+import BookingService from "../../service/BookingService";
 
 
 export default function BusOperatorBookings() {
@@ -13,7 +14,7 @@ export default function BusOperatorBookings() {
 
   const fetchBookings = async () => {
     try {
-      const response = await axiosInstance.get("/booking/bookings/summary"); 
+      const response = await BookingService.getBookings();
       setBookings(response.data);
     } catch (err) {
       console.error(err);
@@ -21,29 +22,18 @@ export default function BusOperatorBookings() {
     }
   };
 
-  const handleRefund = async (bookingId) => {
-    try {
-      const response = await axiosInstance.put(
-        `/booking/refund/${bookingId}`,
-        null, 
-        {
-          headers: {
-            "Content-Type": "text/plain", 
-            Accept: "text/plain",         
-          },
-          responseType: "text",           
-        } 
-      );
-
-      setMessage(response.data);  
-      setError("");               
-      fetchBookings();           
-    } catch (err) {
-      console.error(err);
-      setError("Failed to refund booking.");
-      setMessage("");            
-    }
-  };
+const handleRefund = async (bookingId) => {
+  try {
+    const response = await BookingService.refundBooking(bookingId);
+    setMessage(response.data);
+    setError("");
+    fetchBookings(); 
+  } catch (err) {
+    console.error(err);
+    setError("Failed to refund booking.");
+    setMessage("");
+  }
+};
 
   return (
     <div className="container my-5">

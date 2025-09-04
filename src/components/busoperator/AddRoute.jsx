@@ -1,5 +1,6 @@
 import { useState } from "react";
-import axiosInstance from "../../http-common";
+
+import BusOperatorService from "../../service/BusOperatorService";
 
 const AddRoute = () => {
   const [route, setRoute] = useState({
@@ -25,7 +26,7 @@ const AddRoute = () => {
     }
 
     try {
-      const response = await axiosInstance.post("/route/add", route);
+      const response = await BusOperatorService.addRoute(route);
       setMessage(`Route added successfully with ID: ${response.data.routeId}`);
       setRoute({
         routeName: "",

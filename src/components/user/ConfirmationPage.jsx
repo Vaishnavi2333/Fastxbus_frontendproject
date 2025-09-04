@@ -1,7 +1,7 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useEffect } from "react";
-import axiosInstance from "../../http-common";
+import TicketService from "../../service/TicketService";
 
 
 export function ConfirmationPage() {
@@ -22,7 +22,7 @@ export function ConfirmationPage() {
 
     const generateTicket = async () => {
       try {
-        const res = await axiosInstance.post(`/ticket/generate/${booking.bookingId}`);
+       const res = await TicketService.generateTicket(booking.bookingId);
         setTicket(res.data);
       } catch (err) {
         console.error("Ticket generation failed:", err);
