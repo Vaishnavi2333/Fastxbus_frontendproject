@@ -27,6 +27,10 @@ addBus: async (busData) => {
   getAvailableSeats: (tripId) => {
     return axiosInstance.get(`/bus/available-seats/${tripId}`);
   },
+
+  updateBus: async (bus) => {
+    return await axiosInstance.put("/bus/update", bus);
+  },
 };
 
 export default BusService;

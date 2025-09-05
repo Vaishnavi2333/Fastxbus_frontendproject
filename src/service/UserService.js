@@ -16,6 +16,10 @@ const UserService = {
   createUser: (userData) => {
     return axiosInstance.post("/userdata/createuser", userData);
   },
+updateUser: (userData) => {
+    return axiosInstance.put("/userdata/updateuser", userData);
+  }
+
 }
 
 export default UserService;

@@ -17,7 +17,10 @@ const TripService ={
 
   getTripById : async () =>{
     return await axiosInstance.get(`/trip/by-operator`);
-  }
+  },
+  updateTrip: async (tripData) => {
+  return await axiosInstance.put("/trip/updatetrip", tripData);
+}
 }
 
 

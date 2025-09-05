@@ -12,7 +12,7 @@ import AddTrip from "../busoperator/AddTrip";
 import { SearchBus } from "../user/SearchBus";
 import { BookingPage } from "../user/BookingPage";
 import { ConfirmationPage } from "../user/ConfirmationPage";
-import MyBookings from "../MyBookings";
+import MyBookings from "../user/MyBookings";
 import { useState,useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import BusOperatorBookings from "../busoperator/BusOperatorBookings";
@@ -28,6 +28,7 @@ import AdminRoutes from "../admin/AdminRoutes";
 import AdminTrips from "../admin/AdminTrips";
 import AdminBusManagement from "../admin/AdminBusManagement";
 import BusOperatorApproval from "../admin/BusOperatorApproval";
+import ForgotPasswordPage from "./ForgotPassword";
 
 export function Routing() {
   const [username, setUsername] = useState(localStorage.getItem("username") || "");
@@ -148,6 +149,7 @@ export function Routing() {
            <Route path="/adminbus" element={<AdminBusManagement></AdminBusManagement>}></Route>
            <Route path="/adminviewbusop" element={<BusOperatorPage></BusOperatorPage>}></Route>
             <Route path="/bus-operator-approvals" element={<BusOperatorApproval />} /> 
+            <Route path="/forgot-password" element={<ForgotPasswordPage></ForgotPasswordPage>}></Route>
         </Routes>
       </div>
     </>

@@ -4,7 +4,7 @@ import { useEffect } from "react";
 
 import { useNavigate } from "react-router";
 import RouteService from "../../service/RouteService";
-import RouteService from "../../service/RouteService";
+import BusService from "../../service/BusService";
 
 export function SearchBus() {
   const [origin, setOrigin] = useState("");
@@ -28,6 +28,8 @@ export function SearchBus() {
       })
       .catch((err) => console.error("Error fetching routes:", err));
   }, []);
+
+  
 
   const handleSearch = async (e) => {
     e.preventDefault();
@@ -87,26 +89,6 @@ export function SearchBus() {
       return;
     }
 
-   
-    const updatedBuses = buses.map((bus) =>
-      bus.tripId === selectedBus.tripId
-        ? {
-            ...bus,
-            availableSeats: bus.availableSeats.filter(
-              (s) => !selectedSeats.includes(s)
-            ),
-          }
-        : bus
-    );
-    setBuses(updatedBuses);
-
-    setSelectedBus((prev) => ({
-      ...prev,
-      availableSeats: prev.availableSeats.filter(
-        (s) => !selectedSeats.includes(s)
-      ),
-    }));
-
     const storedUserId = localStorage.getItem("userId");
     navigate("/booking", {
       state: {
@@ -120,6 +102,22 @@ export function SearchBus() {
     setSelectedSeats([]);
   };
 
+  const getFilteredSuggestions = (input, suggestions) => {
+    return suggestions.filter((s) =>
+      s.toLowerCase().includes(input.toLowerCase())
+    );
+  };
+
+  const handleSelectOrigin = (value) => {
+    setOrigin(value);
+    setOriginSuggestions([]);
+  };
+
+  const handleSelectDestination = (value) => {
+    setDestination(value);
+    setDestinationSuggestions([]);
+  };
+
   return (
     <div className="container my-5">
       <div className="card shadow-sm p-4">
@@ -128,7 +126,6 @@ export function SearchBus() {
         {error && <div className="alert alert-danger">{error}</div>}
 
         <form onSubmit={handleSearch} className="row g-3">
-         
           <div className="col-md-4 position-relative">
             <label className="form-label">Origin</label>
             <input
@@ -152,7 +149,6 @@ export function SearchBus() {
               ))}
           </div>
 
-         
           <div className="col-md-4 position-relative">
             <label className="form-label">Destination</label>
             <input
@@ -178,7 +174,6 @@ export function SearchBus() {
               )}
           </div>
 
-         
           <div className="col-md-4">
             <label className="form-label">Date</label>
             <input
@@ -196,7 +191,6 @@ export function SearchBus() {
           </div>
         </form>
 
-      
         {buses.length > 0 && (
           <div className="mt-4">
             <h4>Available Buses</h4>
@@ -220,36 +214,58 @@ export function SearchBus() {
           </div>
         )}
 
-       
-        {selectedBus &&
-          selectedBus.availableSeats &&
-          selectedBus.availableSeats.length > 0 && (
-            <div className="mt-4">
-              <h4>Available Seats for {selectedBus.busName}</h4>
-              <div className="d-flex flex-wrap gap-2">
-               {selectedBus.availableSeats.map((seat) => (
-     <div
-    key={seat}
-    onClick={() => toggleSeat(seat)}
-    className={`btn ${
-      selectedSeats.includes(seat) ? "btn-success" : "btn-outline-secondary"
-    }`}
-    style={{ width: "60px", height: "60px", whiteSpace: "nowrap" }}
-  >
-    {seat}  
-  </div>
-))}
-              </div>
-              <div className="text-center mt-3">
-                <button
-                  className="btn btn-success btn-lg"
-                  onClick={handleBookSeats}
-                >
-                  Book Selected Seats
-                </button>
+        {selectedBus && (
+          <div className="mt-4">
+            <h4 className="text-center">Seats for {selectedBus.busName}</h4>
+            <div className="d-flex justify-content-center">
+              <div
+                className="d-flex flex-wrap"
+                style={{ maxWidth: "480px", gap: "8px" }}
+              >
+                {Array.from({ length: selectedBus.capacity }, (_, i) => {
+                  const seatNumber = `S${i + 1}`;
+                  const isAvailable = selectedBus.availableSeats.includes(seatNumber);
+                  const isSelected = selectedSeats.includes(seatNumber);
+
+                  
+                  const seatStyle = {
+                    width: "60px",
+                    height: "60px",
+                    textAlign: "center",
+                    lineHeight: "60px",
+                    cursor: isAvailable ? "pointer" : "not-allowed",
+                    marginRight: (i % 4 === 1) ? "20px" : "0", 
+                  };
+
+                  return (
+                    <div
+                      key={seatNumber}
+                      onClick={() => isAvailable && toggleSeat(seatNumber)}
+                      className={`btn ${
+                        isAvailable
+                          ? isSelected
+                            ? "btn-success"
+                            : "btn-outline-primary"
+                          : "btn-secondary disabled"
+                      }`}
+                      style={seatStyle}
+                    >
+                      {isAvailable ? seatNumber : ""}
+                    </div>
+                  );
+                })}
               </div>
             </div>
-          )}
+            <div className="text-center mt-3">
+              <button
+                className="btn btn-success btn-lg"
+                onClick={handleBookSeats}
+              >
+                Book Selected Seats
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

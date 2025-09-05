@@ -1,9 +1,16 @@
 import { useState } from "react";
-
-import BusOperatorService from "../../service/BusOperatorService";
+import { useLocation } from "react-router";
+import { useEffect } from "react";
+import { useNavigate } from "react-router";
+import BusService from "../../service/BusService";
 
 const AddBus = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const editingBus = location.state?.bus; 
+
   const [bus, setBus] = useState({
+    busId: "",
     busName: "",
     busNumber: "",
     busType: "",
@@ -11,6 +18,12 @@ const AddBus = () => {
     status: "Available",
     amenities: [{ amenityName: "" }],
   });
+
+  useEffect(() => {
+    if (editingBus) {
+      setBus(editingBus); 
+    }
+  }, [editingBus]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -27,29 +40,32 @@ const AddBus = () => {
     setBus({ ...bus, amenities: [...bus.amenities, { amenityName: "" }] });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    BusOperatorService.addBus(bus)
-      .then((res) => {
+
+    try {
+      if (bus.busId) {
+      
+        await BusService.updateBus(bus);
+        alert("Bus updated successfully!");
+      } else {
+        
+        await BusService.addBus(bus);
         alert("Bus added successfully!");
-        setBus({
-          busName: "",
-          busNumber: "",
-          busType: "",
-          capacity: "",
-          status: "Available",
-          amenities: [{ amenityName: "" }],
-        });
-      })
-      .catch((err) => {
-        console.error(err);
-        alert("Error adding bus");
-      });
+      }
+      navigate("/busoperator/buses");
+    } catch (err) {
+      console.error(err);
+      alert("Error saving bus.");
+    }
   };
 
   return (
     <div className="container mt-5" style={{ maxWidth: "700px" }}>
-      <h2 className="mb-4 text-center">Add Bus</h2>
+      <h2 className="mb-4 text-center">
+        {bus.busId ? "Update Bus" : "Add Bus"}
+      </h2>
+
       <form onSubmit={handleSubmit}>
         <div className="row mb-3">
           <div className="col-md-6">
@@ -143,7 +159,7 @@ const AddBus = () => {
 
         <div className="text-center">
           <button type="submit" className="btn btn-primary btn-lg">
-            Add Bus
+            {bus.busId ? "Update Bus" : "Add Bus"}
           </button>
         </div>
       </form>

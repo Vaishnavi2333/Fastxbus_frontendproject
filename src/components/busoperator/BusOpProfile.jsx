@@ -1,7 +1,6 @@
 
-
-import { useState } from "react";
-import api from "../../http-common";
+import { useState, useEffect } from "react";
+import BusOperatorService from "../../service/BusOperatorService";
 
 export function BusOpProfile() {
   const [formData, setFormData] = useState({
@@ -17,28 +16,69 @@ export function BusOpProfile() {
 
   const [message, setMessage] = useState("");
 
+  
+  const busOpId = localStorage.getItem("busOpId");
+
+  
+  useEffect(() => {
+    const fetchBusOpProfile = async () => {
+      if (!busOpId) return;
+
+      try {
+        const response = await BusOperatorService.getBusOpById(busOpId);
+        if (response.data) {
+          setFormData({
+            name: response.data.name || "",
+            companyName: response.data.companyName || "",
+            licenceNumber: response.data.licenceNumber || "",
+            gender: response.data.gender || "",
+            dateOfBirth: response.data.dateOfBirth || "",
+            email: response.data.email || "",
+            contactNumber: response.data.contactNumber || "",
+            address: response.data.address || "",
+          });
+        }
+      } catch (err) {
+        console.error("Failed to fetch bus operator profile:", err);
+        setMessage("Error fetching profile.");
+      }
+    };
+
+    fetchBusOpProfile();
+  }, [busOpId]);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setMessage("");
+  e.preventDefault();
+  setMessage("");
 
-    try {
-      const response = await api.post("/busopdata/add", formData);
-      setMessage("Profile created successfully!");
-      console.log(response.data);
-    } catch (err) {
-      console.error(err);
-      if (err.response && err.response.status === 403) {
-        setMessage("Unauthorized. Please login again.");
-      } else {
-        setMessage("Error creating profile.");
-      }
+  try {
+    let payload = { ...formData };
+
+    
+    if (busOpId) {
+      payload.busOpLoginId = busOpId; 
     }
-  };
+
+    const response = busOpId
+      ? await BusOperatorService.updateBusOp(payload)
+      : await BusOperatorService.createBusOp(payload);
+
+    setMessage("Profile saved successfully!");
+    console.log(response.data);
+  } catch (err) {
+    console.error(err);
+    if (err.response && err.response.status === 403) {
+      setMessage("Unauthorized. Please login again.");
+    } else {
+      setMessage("Error saving profile.");
+    }
+  }
+};
 
   return (
     <div className="container mt-5" style={{ maxWidth: "700px" }}>
@@ -156,7 +196,7 @@ export function BusOpProfile() {
 
         <div className="text-center">
           <button type="submit" className="btn btn-primary btn-lg">
-            Create Profile
+            Save Profile
           </button>
         </div>
       </form>

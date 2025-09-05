@@ -1,5 +1,8 @@
 import { useState } from "react";
 import UserService from "../../service/UserService";
+import { useEffect } from "react";
+
+
 
 export function UserProfilePage() {
   const [formData, setFormData] = useState({
@@ -12,25 +15,69 @@ export function UserProfilePage() {
   });
 
   const [message, setMessage] = useState("");
+  const [userId, setUserId] = useState(null); 
+  const [userdataId, setUserdataId] = useState(null);
+
+  
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      const id = localStorage.getItem("userId");
+      if (!id) return;
+
+      try {
+        const response = await UserService.getUserById(id);
+        if (response.data) {
+    setFormData({
+        name: response.data.name || "",
+        gender: response.data.gender || "",
+        dateOfBirth: response.data.dateOfBirth || "",
+        email: response.data.email || "",
+        contactNumber: response.data.contactNumber || "",
+        address: response.data.address || "",
+    });
+    setUserId(response.data.userId);
+    setUserdataId(response.data.userdataId); 
+}
+      } catch (err) {
+        console.error("Failed to fetch user profile:", err);
+      }
+    };
+
+    fetchUserProfile();
+  }, []);
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setMessage("");
+  e.preventDefault();
+  setMessage("");
 
-    try {
-      const response = await UserService.createUser(formData);
-      setMessage("Profile created successfully!");
-      console.log(response.data);
-    } catch (err) {
-      console.error(err);
-      setMessage("Error creating profile.");
+  try {
+    let response;
+
+    if (!userdataId) {
+      
+      response = await UserService.createUser(formData); 
+    } else {
+      
+      const payload = { ...formData, userId, userdataId };
+      response = await UserService.updateUser(payload);
     }
-  };
 
+    setMessage("Profile saved successfully!");
+    console.log(response.data);
+
+    if (response.data.userdataId) {
+      setUserdataId(response.data.userdataId); 
+    }
+  } catch (err) {
+    console.error(err);
+    setMessage("Error saving profile.");
+  }
+};
   return (
     <div className="container mt-5">
       <h2>User Profile</h2>
@@ -119,3 +166,4 @@ export function UserProfilePage() {
     </div>
   );
 }
+

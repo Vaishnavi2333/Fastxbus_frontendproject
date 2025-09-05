@@ -18,7 +18,7 @@ export default function LoginPage() {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setError("");
+    setError(""); 
 
     try {
       if (role === "user") {
@@ -27,44 +27,34 @@ export default function LoginPage() {
         localStorage.setItem("userId", userId);
         localStorage.setItem("username", credentials.username);
         localStorage.setItem("role", role);
-      }  else if (role === "busoperator") {
-  try {
-    const { token, busOpId } = await AuthService.loginBusOperator(credentials);
-    localStorage.setItem("token", token);
-    localStorage.setItem("busOpId", busOpId);
-    localStorage.setItem("username", credentials.username);
-    localStorage.setItem("role", role);
-  } catch (err) {
-    if (err.response && err.response.status === 403) {
-     
-      const backendMessage = err.response.data?.message || "";
-      if (backendMessage.includes("not approved")) {
-        setError("Your account is not approved by admin yet. Please wait for approval.");
-      } else if (backendMessage.includes("rejected")) {
-        setError("Your account has been rejected by admin. Please contact support.");
+        navigate("/user/dashboard");
+      } else if (role === "busoperator") {
+        const { token, busOpId } = await AuthService.loginBusOperator(credentials);
+        localStorage.setItem("token", token);
+        localStorage.setItem("busOpId", busOpId);
+        localStorage.setItem("username", credentials.username);
+        localStorage.setItem("role", role);
+        navigate("/busoperator/dashboard");
       } else {
-        setError("Access forbidden. Please contact admin.");
-      }
-      return; 
-    } else {
-      throw err;
-    }
-  }
-} else {
         const response = await AuthService.loginAdmin(credentials);
         localStorage.setItem("token", response.data);
         localStorage.setItem("role", role);
         localStorage.setItem("username", credentials.username);
+        navigate("/admin/dashboard");
       }
 
+    
       window.dispatchEvent(new Event("storageUpdated"));
-
-      if (role === "user") navigate("/user/dashboard");
-      if (role === "busoperator") navigate("/busoperator/dashboard");
-      if (role === "admin") navigate("/admin/dashboard");
     } catch (err) {
-      console.error(err);
-      setError("Login failed! Invalid username or password.");
+      console.error("Login error:", err);
+
+      
+      const backendMessage =
+        err.response?.data?.message ||
+        err.response?.data ||
+        "Login failed! Invalid username or password.";
+
+      setError(backendMessage);
     }
   };
 
@@ -130,6 +120,16 @@ export default function LoginPage() {
             <button className="btn btn-primary w-100" type="submit">
               Login
             </button>
+            <div className="text-center mt-3">
+              <button
+                type="button"
+                className="btn btn-link p-0"
+                onClick={() => navigate("/forgot-password")}
+              >
+                Forgot Password?
+              </button>
+            </div>
+
           </form>
         </div>
       </div>

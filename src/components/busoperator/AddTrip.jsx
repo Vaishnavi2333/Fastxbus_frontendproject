@@ -2,11 +2,14 @@ import { useState } from "react";
 import BusService from "../../service/BusService";
 import RouteService from "../../service/RouteService";
 import TripService from "../../service/TripService";
-
-
+import { useLocation } from "react-router";
+import { useNavigate } from "react-router";
+import { useEffect } from "react";
 
 export default function AddTrip() {
+  const location = useLocation();
   const [trip, setTrip] = useState({
+    tripId: null,
     date: "",
     departureTime: "",
     arrivalTime: "",
@@ -18,6 +21,25 @@ export default function AddTrip() {
   const [message, setMessage] = useState("");
   const [buses, setBuses] = useState([]);
   const [routes, setRoutes] = useState([]);
+  const [showBuses, setShowBuses] = useState(false);
+  const [showRoutes, setShowRoutes] = useState(false);
+
+  
+  useEffect(() => {
+    if (location.state?.trip) {
+      const existingTrip = location.state.trip;
+      setTrip({
+        tripId: existingTrip.tripId || null,
+        date: existingTrip.date || "",
+        departureTime: existingTrip.departureTime || "",
+        arrivalTime: existingTrip.arrivalTime || "",
+        fare: existingTrip.fare || "",
+        status: existingTrip.status || "Scheduled",
+        busId: existingTrip.bus?.busId || existingTrip.busId || "",
+        routeId: existingTrip.route?.routeId || existingTrip.routeId || "",
+      });
+    }
+  }, [location.state]);
 
   const fetchBuses = async () => {
     try {
@@ -54,25 +76,31 @@ export default function AddTrip() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await TripService.addTrip(trip);
-      setMessage("Trip added successfully!");
-      setTrip({
-        date: "",
-        departureTime: "",
-        arrivalTime: "",
-        fare: "",
-        status: "Scheduled",
-        busId: "",
-        routeId: "",
-      });
+      if (trip.tripId) {
+        await TripService.updateTrip(trip);
+        setMessage("Trip updated successfully!");
+      } else {
+        await TripService.addTrip(trip);
+        setMessage("Trip added successfully!");
+        setTrip({
+          tripId: null,
+          date: "",
+          departureTime: "",
+          arrivalTime: "",
+          fare: "",
+          status: "Scheduled",
+          busId: "",
+          routeId: "",
+        });
+      }
     } catch (err) {
-      setMessage(err.response?.data?.message || "Error adding trip");
+      setMessage(err.response?.data?.message || "Error saving trip");
     }
   };
 
   return (
-    <div className="container mt-5" style={{ maxWidth: "800px" }}>
-      <h2 className="mb-4 text-center">Add Trip</h2>
+    <div className="container mt-5" style={{ maxWidth: "900px" }}>
+      <h2 className="mb-4 text-center">{trip.tripId ? "Update Trip" : "Add Trip"}</h2>
 
       <form onSubmit={handleSubmit}>
         <div className="row mb-3">
@@ -141,51 +169,67 @@ export default function AddTrip() {
 
         <div className="row mb-3">
           <div className="col-md-6">
-            <label className="form-label">Selected Bus ID</label>
+            <label className="form-label">Bus</label>
             <input
               type="number"
               name="busId"
               className="form-control"
-              value={trip.busId}
+              value={trip.busId || ""}
               onChange={handleChange}
               required
             />
           </div>
           <div className="col-md-6">
-            <label className="form-label">Selected Route ID</label>
+            <label className="form-label">Route</label>
             <input
               type="number"
               name="routeId"
               className="form-control"
-              value={trip.routeId}
+              value={trip.routeId || ""}
               onChange={handleChange}
               required
             />
           </div>
         </div>
 
-        <div className="text-center">
+        <div className="text-center mb-4">
           <button type="submit" className="btn btn-primary btn-lg">
-            Add Trip
+            {trip.tripId ? "Update Trip" : "Add Trip"}
           </button>
         </div>
       </form>
 
-      {message && <p className="mt-3 text-center text-success">{message}</p>}
+      {message && <p className="text-center text-success">{message}</p>}
 
-      <div className="d-flex justify-content-center gap-3 mt-4">
-        <button className="btn btn-secondary" onClick={fetchBuses}>
+      
+      <div className="d-flex justify-content-center gap-3 mb-4 flex-wrap">
+        <button
+          className="btn btn-info text-white"
+          onClick={() => {
+            setShowBuses(true);
+            setShowRoutes(false);
+            if (buses.length === 0) fetchBuses();
+          }}
+        >
           Show Buses
         </button>
-        <button className="btn btn-secondary" onClick={fetchRoutes}>
+        <button
+          className="btn btn-success text-white"
+          onClick={() => {
+            setShowRoutes(true);
+            setShowBuses(false);
+            if (routes.length === 0) fetchRoutes();
+          }}
+        >
           Show Routes
         </button>
       </div>
 
-      {buses.length > 0 && (
-        <div className="mt-4">
-          <h3 className="text-center">Available Buses</h3>
-          <table className="table table-bordered table-hover mt-2">
+      
+      {showBuses && buses.length > 0 && (
+        <div className="table-responsive mb-4">
+          <h4 className="text-center text-info mb-3">Available Buses</h4>
+          <table className="table table-bordered table-hover shadow-sm">
             <thead className="table-light">
               <tr>
                 <th>ID</th>
@@ -199,18 +243,16 @@ export default function AddTrip() {
               {buses.map((bus) => (
                 <tr
                   key={bus.busId}
-                  className="cursor-pointer"
+                  className={`cursor-pointer ${
+                    trip.busId === bus.busId ? "table-primary fw-bold" : ""
+                  }`}
                   onClick={() => selectBus(bus.busId)}
                 >
                   <td>{bus.busId}</td>
                   <td>{bus.busName}</td>
                   <td>{bus.busType}</td>
                   <td>{bus.capacity}</td>
-                  <td>
-                    {bus.amenities?.length
-                      ? bus.amenities.map((a) => a.amenityName).join(", ")
-                      : "None"}
-                  </td>
+                  <td>{bus.amenities?.length ? bus.amenities.map(a => a.amenityName).join(", ") : "None"}</td>
                 </tr>
               ))}
             </tbody>
@@ -218,10 +260,11 @@ export default function AddTrip() {
         </div>
       )}
 
-      {routes.length > 0 && (
-        <div className="mt-4">
-          <h3 className="text-center">Available Routes</h3>
-          <table className="table table-bordered table-hover mt-2">
+      
+      {showRoutes && routes.length > 0 && (
+        <div className="table-responsive">
+          <h4 className="text-center text-success mb-3">Available Routes</h4>
+          <table className="table table-bordered table-hover shadow-sm">
             <thead className="table-light">
               <tr>
                 <th>ID</th>
@@ -235,7 +278,9 @@ export default function AddTrip() {
               {routes.map((route) => (
                 <tr
                   key={route.routeId}
-                  className="cursor-pointer"
+                  className={`cursor-pointer ${
+                    trip.routeId === route.routeId ? "table-success fw-bold" : ""
+                  }`}
                   onClick={() => selectRoute(route.routeId)}
                 >
                   <td>{route.routeId}</td>

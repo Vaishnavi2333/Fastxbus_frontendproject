@@ -14,7 +14,7 @@ export default function BusOperatorTrips() {
   const fetchTrips = async () => {
     try {
       const response = await TripService.getTripById();
-      setTrips(response.data);
+      setTrips(response.data); 
     } catch (err) {
       console.error(err);
       setError("Failed to load trips.");
@@ -29,7 +29,6 @@ export default function BusOperatorTrips() {
 
   const handleDelete = async (tripId) => {
     if (!window.confirm("Are you sure you want to delete this trip?")) return;
-
     try {
       await TripService.deleteTrip(tripId);
       setTrips(trips.filter((trip) => trip.tripId !== tripId));
@@ -70,7 +69,7 @@ export default function BusOperatorTrips() {
               <td>{trip.arrivalTime}</td>
               <td>{trip.fare}</td>
               <td>{trip.status}</td>
-              <td>{trip.bus?.busName || "N/A"}</td>
+              <td>{trip.busName}</td> {/* use transient busName */}
               <td>{trip.route?.routeName || "N/A"}</td>
               <td>
                 <button

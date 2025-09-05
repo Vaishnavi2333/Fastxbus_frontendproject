@@ -20,7 +20,18 @@ const BookingService={
 
   createBooking: async (bookingDto) => {
     return axiosInstance.post("/booking/add", bookingDto);
-  }
+  },
+
+  getBookingByUser: async(userId) => {
+    return  await axiosInstance.get(`/booking/user/${userId}/summary`);
+  },
+
+  deleteBooking: async(bookingId) =>{
+    return await axiosInstance.delete(`/booking/cancel/${bookingId}`);
+  },
+   getBookingById : async(bookingId) => {
+  return await axiosInstance.get(`booking/get/${bookingId}`);
+}
 
 }
 

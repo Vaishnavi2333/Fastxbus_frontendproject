@@ -16,7 +16,14 @@ const BusOperatorService ={
       );
   },
 
+createBusOp: async(data) => {
+    return await axiosInstance.post("/busopdata/add", data);
+  },
 
+
+  updateBusOp: async (data) => {
+    return await axiosInstance.put("/busopdata/update", data);
+  },
 
 };
 

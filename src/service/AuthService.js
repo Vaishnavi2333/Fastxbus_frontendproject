@@ -48,8 +48,18 @@ async loginBusOperator(credentials) {
   },
   loginAdmin(credentials) {
     return http.post("/auth/login/admin", credentials);
+  },
+
+  forgotPassword(role, username) {
+    return http.post(`/auth/forgot-password/${role}`, { username });
+  },
+
+  resetPassword(role, username, newPassword) {
+    return http.post(`/auth/reset-password/${role}`, { username, newPassword });
   }
+
 };
+
 
 export default AuthService;
 

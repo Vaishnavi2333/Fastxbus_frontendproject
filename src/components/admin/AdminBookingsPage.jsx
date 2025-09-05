@@ -49,11 +49,11 @@ export default function AdminBookingsPage() {
               {bookings.map((b) => (
                 <tr key={b.bookingId}>
                   <td>{b.bookingId}</td>
-                  <td>{b.username}</td>
+                  <td>{b.name}</td>
                   <td>{b.busName}</td>
                   <td>{format(new Date(b.bookingDate), "dd/MM/yyyy")}</td>
-                  <td>{b.startingTime}</td>
-                  <td>{b.endingTime}</td>
+                  <td>{b.departureTime}</td>
+                  <td>{b.arrivalTime}</td>
                   <td>{b.seatsBooked.join(", ")}</td>
                   <td>{b.totalAmount.toFixed(2)}</td>
                   <td>{b.status}</td>

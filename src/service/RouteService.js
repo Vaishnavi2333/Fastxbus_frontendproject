@@ -12,7 +12,12 @@ const RouteService = {
   },
   getRouteByOp : async () =>{
     return await axiosInstance.get(`/route/getbyoperator`);
-  }
+  },
+  updateRoute: async (route) => {
+    return await axiosInstance.put("/route/update", route);
+  },
+
+  
 }
 
 export default RouteService;

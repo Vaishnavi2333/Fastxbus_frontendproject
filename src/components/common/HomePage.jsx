@@ -1,3 +1,4 @@
+import logo from "C:/reactjs/projectstructure/src/assets/logo2.png"
 
 
 export function HomePage() {
@@ -14,6 +15,9 @@ return (
         backgroundColor: "#f0f4f8",
       }}
     >
+       <div>
+      <img src={logo} alt="Bus Ticket System Logo" width={300} height={300} />
+    </div>
       <h1 style={{ 
         fontSize: "3rem", 
         fontWeight: "700", 
