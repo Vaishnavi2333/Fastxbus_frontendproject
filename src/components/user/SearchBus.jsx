@@ -5,20 +5,29 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router";
 import RouteService from "../../service/RouteService";
 import BusService from "../../service/BusService";
+import { FaBus } from "react-icons/fa";
+import { useLocation } from "react-router";
+
 
 export function SearchBus() {
-  const [origin, setOrigin] = useState("");
-  const [destination, setDestination] = useState("");
-  const [date, setDate] = useState("");
+  const location = useLocation();
+  const state = location.state || {};
+  const [origin, setOrigin] = useState(state.origin || "");
+  const [destination, setDestination] = useState(state.destination || "");
+  const [date, setDate] = useState(state.date || "");
   const [error, setError] = useState("");
 
   const [originSuggestions, setOriginSuggestions] = useState([]);
   const [destinationSuggestions, setDestinationSuggestions] = useState([]);
+  const [filteredOriginSuggestions, setFilteredOriginSuggestions] = useState([]);
+  const [filteredDestinationSuggestions, setFilteredDestinationSuggestions] = useState([]);
+
   const [buses, setBuses] = useState([]);
   const [selectedBus, setSelectedBus] = useState(null);
   const [selectedSeats, setSelectedSeats] = useState([]);
   const navigate = useNavigate();
 
+  // fetch routes for autocomplete
   useEffect(() => {
     RouteService.getRoutes()
       .then((res) => {
@@ -26,10 +35,46 @@ export function SearchBus() {
         setOriginSuggestions([...new Set(routes.map((r) => r.origin))]);
         setDestinationSuggestions([...new Set(routes.map((r) => r.destination))]);
       })
-      .catch((err) => console.error("Error fetching routes:", err));
+      .catch((err) => console.error(err));
   }, []);
 
-  
+  const handleOriginChange = (e) => {
+    const value = e.target.value;
+    setOrigin(value);
+    if (value) {
+      setFilteredOriginSuggestions(
+        originSuggestions.filter((s) =>
+          s.toLowerCase().startsWith(value.toLowerCase())
+        )
+      );
+    } else {
+      setFilteredOriginSuggestions([]);
+    }
+  };
+
+  const handleOriginSelect = (s) => {
+    setOrigin(s);
+    setFilteredOriginSuggestions([]);
+  };
+
+  const handleDestinationChange = (e) => {
+    const value = e.target.value;
+    setDestination(value);
+    if (value) {
+      setFilteredDestinationSuggestions(
+        destinationSuggestions.filter((s) =>
+          s.toLowerCase().startsWith(value.toLowerCase())
+        )
+      );
+    } else {
+      setFilteredDestinationSuggestions([]);
+    }
+  };
+
+  const handleDestinationSelect = (s) => {
+    setDestination(s);
+    setFilteredDestinationSuggestions([]);
+  };
 
   const handleSearch = async (e) => {
     e.preventDefault();
@@ -46,7 +91,6 @@ export function SearchBus() {
 
     try {
       const res = await BusService.searchBuses(origin, destination, date);
-
       if (res.data.length === 0) {
         setError("No buses available for the selected date and route!");
         return;
@@ -54,12 +98,8 @@ export function SearchBus() {
 
       const busesWithSeats = await Promise.all(
         res.data.map(async (bus) => {
-          try {
-            const seatsRes = await BusService.getAvailableSeats(bus.tripId);
-            return { ...bus, availableSeats: seatsRes.data };
-          } catch {
-            return { ...bus, availableSeats: [] };
-          }
+          const seatsRes = await BusService.getAvailableSeats(bus.tripId);
+          return { ...bus, availableSeats: seatsRes.data };
         })
       );
 
@@ -84,69 +124,86 @@ export function SearchBus() {
   };
 
   const handleBookSeats = () => {
-    if (!selectedSeats.length) {
-      alert("Please select at least one seat!");
-      return;
-    }
+  if (!selectedSeats.length) {
+    alert("Please select at least one seat!");
+    return;
+  }
 
-    const storedUserId = localStorage.getItem("userId");
-    navigate("/booking", {
-      state: {
+  const storedUserId = localStorage.getItem("userId");
+
+  if (!storedUserId) {
+    sessionStorage.setItem(
+      "pendingBooking",
+      JSON.stringify({
         selectedBus,
         tripId: selectedBus.tripId,
         selectedSeats,
-        userId: parseInt(storedUserId),
-      },
-    });
-
-    setSelectedSeats([]);
-  };
-
-  const getFilteredSuggestions = (input, suggestions) => {
-    return suggestions.filter((s) =>
-      s.toLowerCase().includes(input.toLowerCase())
+        origin,
+        destination,
+        date,
+      })
     );
-  };
 
-  const handleSelectOrigin = (value) => {
-    setOrigin(value);
-    setOriginSuggestions([]);
-  };
+    alert("Only logged in users can book seats! Please login first.");
+    navigate("/login", { state: { from: "/booking" } });
+    return;
+  }
 
-  const handleSelectDestination = (value) => {
-    setDestination(value);
-    setDestinationSuggestions([]);
-  };
+  navigate("/booking", {
+    state: {
+      selectedBus,
+      tripId: selectedBus.tripId,
+      selectedSeats,
+      userId: parseInt(storedUserId),
+      origin,        
+      destination,   
+      date,          
+    },
+  });
+
+  setSelectedSeats([]);
+};
+
+  const totalPrice = selectedBus ? selectedSeats.length * (selectedBus.fare || 0) : 0;
 
   return (
     <div className="container my-5">
       <div className="card shadow-sm p-4">
-        <h2 className="text-center mb-4">Search Buses</h2>
+        <h2 className="text-center mb-4">
+          <FaBus className="me-2 text-primary" />
+          Search Buses
+        </h2>
 
         {error && <div className="alert alert-danger">{error}</div>}
 
-        <form onSubmit={handleSearch} className="row g-3">
+        {/* Search form */}
+        <form onSubmit={handleSearch} className="row g-3 mb-4">
           <div className="col-md-4 position-relative">
             <label className="form-label">Origin</label>
             <input
               type="text"
               className="form-control"
               value={origin}
-              onChange={(e) => setOrigin(e.target.value)}
+              onChange={handleOriginChange}
               placeholder="Enter origin"
               autoComplete="off"
             />
-            {origin &&
-              getFilteredSuggestions(origin, originSuggestions).map((s, i) => (
-                <div
-                  key={i}
-                  onClick={() => handleSelectOrigin(s)}
-                  className="position-absolute border p-1 bg-white w-100"
-                  style={{ zIndex: 10, cursor: "pointer" }}
-                >
-                  {s}
-                </div>
-              ))}
+            {filteredOriginSuggestions.length > 0 && (
+              <ul
+                className="list-group position-absolute w-100"
+                style={{ zIndex: 10, cursor: "pointer" }}
+              >
+                {filteredOriginSuggestions.map((s, i) => (
+                  <li
+                    key={i}
+                    className="list-group-item"
+                    onClick={() => handleOriginSelect(s)}
+                  >
+                    {s}
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
 
           <div className="col-md-4 position-relative">
@@ -155,23 +212,26 @@ export function SearchBus() {
               type="text"
               className="form-control"
               value={destination}
-              onChange={(e) => setDestination(e.target.value)}
+              onChange={handleDestinationChange}
               placeholder="Enter destination"
               autoComplete="off"
             />
-            {destination &&
-              getFilteredSuggestions(destination, destinationSuggestions).map(
-                (s, i) => (
-                  <div
+            {filteredDestinationSuggestions.length > 0 && (
+              <ul
+                className="list-group position-absolute w-100"
+                style={{ zIndex: 10, cursor: "pointer" }}
+              >
+                {filteredDestinationSuggestions.map((s, i) => (
+                  <li
                     key={i}
-                    onClick={() => handleSelectDestination(s)}
-                    className="position-absolute border p-1 bg-white w-100"
-                    style={{ zIndex: 10, cursor: "pointer" }}
+                    className="list-group-item"
+                    onClick={() => handleDestinationSelect(s)}
                   >
                     {s}
-                  </div>
-                )
-              )}
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
 
           <div className="col-md-4">
@@ -191,6 +251,7 @@ export function SearchBus() {
           </div>
         </form>
 
+        
         {buses.length > 0 && (
           <div className="mt-4">
             <h4>Available Buses</h4>
@@ -198,14 +259,15 @@ export function SearchBus() {
               {buses.map((bus, idx) => (
                 <button
                   key={idx}
-                  className={`list-group-item list-group-item-action d-flex justify-content-between align-items-center ${
-                    selectedBus === bus ? "active" : ""
-                  }`}
+                  className={`list-group-item list-group-item-action d-flex justify-content-between align-items-center ${selectedBus === bus ? "active" : ""}`}
                   onClick={() => handleSelectBus(bus)}
                 >
                   <div>
-                    {bus.busName} - {bus.busType} - Total Seats: {bus.capacity} - Available:{" "}
-                    {bus.availableSeats.length}
+                    <strong>{bus.busName}</strong> ({bus.busType}) <br />
+                    Bus No: {bus.busNumber} <br />
+                    Departure: {bus.departureTime} | Arrival: {bus.arrivalTime} <br />
+                    Price per Seat: ₹{bus.fare} <br />
+                    Total Seats: {bus.capacity} | Available: {bus.availableSeats.length}
                   </div>
                   <span className="badge bg-primary rounded-pill">Select</span>
                 </button>
@@ -214,28 +276,24 @@ export function SearchBus() {
           </div>
         )}
 
+        
         {selectedBus && (
           <div className="mt-4">
-            <h4 className="text-center">Seats for {selectedBus.busName}</h4>
+            <h4 className="text-center mb-3">
+              Seats Layout - {selectedBus.busName} (₹{selectedBus.fare}/seat)
+            </h4>
             <div className="d-flex justify-content-center">
               <div
-                className="d-flex flex-wrap"
-                style={{ maxWidth: "480px", gap: "8px" }}
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(5, 60px)",
+                  gap: "8px",
+                }}
               >
                 {Array.from({ length: selectedBus.capacity }, (_, i) => {
                   const seatNumber = `S${i + 1}`;
                   const isAvailable = selectedBus.availableSeats.includes(seatNumber);
                   const isSelected = selectedSeats.includes(seatNumber);
-
-                  
-                  const seatStyle = {
-                    width: "60px",
-                    height: "60px",
-                    textAlign: "center",
-                    lineHeight: "60px",
-                    cursor: isAvailable ? "pointer" : "not-allowed",
-                    marginRight: (i % 4 === 1) ? "20px" : "0", 
-                  };
 
                   return (
                     <div
@@ -248,7 +306,16 @@ export function SearchBus() {
                             : "btn-outline-primary"
                           : "btn-secondary disabled"
                       }`}
-                      style={seatStyle}
+                      style={{
+                        width: "60px",
+                        height: "60px",
+                        textAlign: "center",
+                        lineHeight: "60px",
+                        cursor: isAvailable ? "pointer" : "not-allowed",
+                        borderRadius: "8px",
+                        transition: "transform 0.2s",
+                        marginRight: i % 4 === 2 ? "20px" : "",
+                      }}
                     >
                       {isAvailable ? seatNumber : ""}
                     </div>
@@ -256,7 +323,12 @@ export function SearchBus() {
                 })}
               </div>
             </div>
+
+            
             <div className="text-center mt-3">
+              <h5>
+                Selected Seats: {selectedSeats.length} | Total Price: ₹{totalPrice}
+              </h5>
               <button
                 className="btn btn-success btn-lg"
                 onClick={handleBookSeats}

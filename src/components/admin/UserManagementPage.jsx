@@ -3,6 +3,8 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router";
 
 import UserService from "../../service/UserService";
+import { FaTrash } from "react-icons/fa";
+
 export default function UserManagementPage() {
   const [users, setUsers] = useState([]);
   const [userId, setUserId] = useState("");
@@ -16,20 +18,11 @@ export default function UserManagementPage() {
     fetchAllUsers();
   }, []);
 
- 
   const fetchAllUsers = async () => {
     try {
       const response = await UserService.getAllUsers();
-      console.log("Raw API Response (all users):", response.data);
+      let data = Array.isArray(response.data) ? response.data : [response.data];
 
-      let data = response.data;
-
-     
-      if (!Array.isArray(data)) {
-        data = [data];
-      }
-
-      
       const cleaned = data.map((u) => ({
         userdataId: u.userdataId,
         userId: u.userId,
@@ -42,19 +35,16 @@ export default function UserManagementPage() {
       setUsers(cleaned);
       setError("");
     } catch (err) {
-      console.error("Error fetching users:", err.response?.data || err.message);
+      console.error(err);
       setError("Failed to fetch users.");
       setUsers([]);
     }
   };
 
- 
   const fetchUserById = async () => {
     if (!userId) return;
     try {
       const response = await UserService.getUserById(userId);
-      console.log("Raw API Response (single user):", response.data);
-
       const u = response.data;
       const cleaned = {
         userdataId: u.userdataId,
@@ -64,17 +54,15 @@ export default function UserManagementPage() {
         contactNumber: u.contactNumber,
         address: u.address,
       };
-
       setSingleUser(cleaned);
       setError("");
     } catch (err) {
-      console.error("Error fetching user:", err.response?.data || err.message);
+      console.error(err);
       setError("User not found!");
       setSingleUser(null);
     }
   };
 
-  
   const deleteUser = async (id) => {
     if (!window.confirm("Are you sure you want to delete this user?")) return;
 
@@ -82,9 +70,10 @@ export default function UserManagementPage() {
       const response = await UserService.deleteUser(id);
       setMessage(response.data);
       setError("");
-      fetchAllUsers(); 
+      fetchAllUsers();
+      if (singleUser?.userId === id) setSingleUser(null);
     } catch (err) {
-      console.error("Error deleting user:", err.response?.data || err.message);
+      console.error(err);
       setError("Failed to delete user.");
       setMessage("");
     }
@@ -97,12 +86,12 @@ export default function UserManagementPage() {
       {error && <div className="alert alert-danger">{error}</div>}
       {message && <div className="alert alert-success">{message}</div>}
 
-     
-      <div className="mb-4">
+   
+      <div className="mb-4 d-flex align-items-center">
         <input
           type="number"
           placeholder="Enter User ID"
-          className="form-control w-25 d-inline-block me-2"
+          className="form-control w-25 me-2"
           value={userId}
           onChange={(e) => setUserId(e.target.value)}
         />
@@ -111,27 +100,27 @@ export default function UserManagementPage() {
         </button>
       </div>
 
-    
+     
       {singleUser && (
-        <div className="card mb-4 p-3">
-          <h5>User ID: {singleUser.userId}</h5>
-          <p>Name: {singleUser.name}</p>
-          <p>Email: {singleUser.email}</p>
-          <p>Phone: {singleUser.contactNumber}</p>
-          <p>Address: {singleUser.address}</p>
+        <div className="card mb-4 shadow-sm p-3 border-primary">
+          <h5 className="text-primary">User ID: {singleUser.userId}</h5>
+          <p><strong>Name:</strong> {singleUser.name}</p>
+          <p><strong>Email:</strong> {singleUser.email}</p>
+          <p><strong>Phone:</strong> {singleUser.contactNumber}</p>
+          <p><strong>Address:</strong> {singleUser.address}</p>
           <button
-            className="btn btn-danger mt-2"
+            className="btn btn-danger btn-sm"
             onClick={() => deleteUser(singleUser.userId)}
           >
-            Delete This User
+            <FaTrash /> Delete
           </button>
         </div>
       )}
 
      
       <h4>All Users</h4>
-      <div className="table-responsive">
-        <table className="table table-bordered table-hover">
+      <div className="table-responsive shadow-sm rounded">
+        <table className="table table-bordered table-hover align-middle">
           <thead className="table-dark">
             <tr>
               <th>User ID</th>
@@ -145,7 +134,10 @@ export default function UserManagementPage() {
           <tbody>
             {users.length > 0 ? (
               users.map((u) => (
-                <tr key={u.userId}>
+                <tr
+                  key={u.userId}
+                  className={singleUser?.userId === u.userId ? "table-primary" : ""}
+                >
                   <td>{u.userId}</td>
                   <td>{u.name}</td>
                   <td>{u.email}</td>
@@ -156,7 +148,7 @@ export default function UserManagementPage() {
                       className="btn btn-danger btn-sm"
                       onClick={() => deleteUser(u.userId)}
                     >
-                      Delete
+                      <FaTrash />
                     </button>
                   </td>
                 </tr>

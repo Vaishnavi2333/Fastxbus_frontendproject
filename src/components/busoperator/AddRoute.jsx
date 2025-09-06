@@ -120,17 +120,18 @@ const AddRoute = () => {
               required
             />
           </div>
-          <div className="col-md-6">
-            <label className="form-label">Estimated Time:</label>
-            <input
-              type="text"
-              name="estimatedTime"
-              className="form-control"
-              value={route.estimatedTime}
-              onChange={handleChange}
-              required
-            />
-          </div>
+         <div className="col-md-6">
+  <label className="form-label">Estimated Time (HH:MM:SS):</label>
+  <input
+    type="time"
+    name="estimatedTime"
+    className="form-control"
+    value={route.estimatedTime}
+    onChange={handleChange}
+    step="1" 
+    required
+  />
+</div>
         </div>
 
         <div className="text-center">

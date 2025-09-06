@@ -3,14 +3,12 @@ import { useNavigate } from "react-router";
 
 import BookingService from "../../service/BookingService";
 
-
 const MyBookings = () => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  
   const fetchBookings = async () => {
     try {
       const userId = localStorage.getItem("userId");
@@ -28,8 +26,10 @@ const MyBookings = () => {
           busName: booking.busName || "N/A",
           departureTime: booking.departureTime || "N/A",
           arrivalTime: booking.arrivalTime || "N/A",
+          busType: booking.busType || "N/A",
+          busNumber: booking.busNumber || "N/A",
           tripId: booking.tripId,
-          selectedSeats: booking.seatsBooked || [], 
+          selectedSeats: booking.seatsBooked || [],
           totalAmount: booking.totalAmount || 0,
           userId: booking.userId || null,
         }));
@@ -51,7 +51,6 @@ const MyBookings = () => {
     fetchBookings();
   }, []);
 
-  
   const handleCancel = async (bookingId) => {
     if (!window.confirm("Are you sure you want to cancel this booking?")) return;
 
@@ -79,10 +78,13 @@ const MyBookings = () => {
         state: {
           bookingId: booking.bookingId,
           selectedBus: {
+            busId: booking.busId,
             busName: booking.busName,
             departureTime: booking.departureTime,
             arrivalTime: booking.arrivalTime,
             fare: booking.totalAmount / booking.selectedSeats.length,
+            busType: booking.busType,
+            busNumber: booking.busNumber,
           },
           tripId: booking.tripId,
           selectedSeats: booking.selectedSeats,
@@ -115,6 +117,8 @@ const MyBookings = () => {
                 <strong>Bus Name:</strong> {booking.busName} <br />
                 <strong>Departure Time:</strong> {booking.departureTime} <br />
                 <strong>Arrival Time:</strong> {booking.arrivalTime} <br />
+                <strong>Bus Type:</strong> {booking.busType} <br />
+                <strong>Bus Number:</strong> {booking.busNumber} <br />
                 <strong>Seats:</strong>{" "}
                 {booking.selectedSeats.length > 0
                   ? booking.selectedSeats.join(", ")
@@ -131,12 +135,14 @@ const MyBookings = () => {
                   </button>
                 )}
 
-                <button
-                  className="btn btn-danger btn-sm"
-                  onClick={() => handleCancel(booking.bookingId)}
-                >
-                  Cancel
-                </button>
+                {booking.status !== "Cancelled" && (
+                  <button
+                    className="btn btn-danger btn-sm"
+                    onClick={() => handleCancel(booking.bookingId)}
+                  >
+                    Cancel
+                  </button>
+                )}
               </div>
             </li>
           ))}

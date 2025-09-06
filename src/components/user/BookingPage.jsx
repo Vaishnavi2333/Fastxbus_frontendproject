@@ -12,29 +12,35 @@ export function BookingPage() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const {
-  bookingId: stateBookingId,
-  selectedSeats: stateSeats,
-  userId: stateUserId,
-  tripId: stateTripId,
-  selectedBus: stateBus
-} = location.state || {};
-
-const storedUserId = localStorage.getItem("userId");
-const userId = stateUserId || storedUserId;
-
-const [selectedBus, setSelectedBus] = useState(stateBus || null);
-const [tripId, setTripId] = useState(stateTripId || null);
-const [selectedSeats, setSelectedSeats] = useState(stateSeats || []);
-
-  const [booking, setBooking] = useState(null);
   
+  const {
+    bookingId: stateBookingId,
+    selectedSeats: stateSeats,
+    userId: stateUserId,
+    tripId: stateTripId,
+    selectedBus: stateBus,
+    origin: stateOrigin,
+    destination: stateDestination,
+    date: stateDate
+  } = location.state || {};
+
+  const storedUserId = localStorage.getItem("userId");
+  const userId = stateUserId || storedUserId;
+
+  const [origin, setOrigin] = useState(stateOrigin || "");
+  const [destination, setDestination] = useState(stateDestination || "");
+  const [date, setDate] = useState(stateDate || "");
+  const [selectedBus, setSelectedBus] = useState(stateBus || null);
+  const [tripId, setTripId] = useState(stateTripId || null);
+  const [selectedSeats, setSelectedSeats] = useState(stateSeats || []);
+  const [booking, setBooking] = useState(null);
+
   const [paymentMethod, setPaymentMethod] = useState("Credit Card");
   const [paymentDetails, setPaymentDetails] = useState({});
   const [paymentDone, setPaymentDone] = useState(false);
   const [error, setError] = useState("");
 
-  // Fetch booking on mount
+  
   useEffect(() => {
     const fetchBooking = async () => {
       try {
@@ -43,9 +49,10 @@ const [selectedSeats, setSelectedSeats] = useState(stateSeats || []);
           const b = res.data;
 
           setSelectedBus({
+            busId: b.busId,
             busName: b.busName || "N/A",
-            startingTime: b.departureTime || "N/A",
-            endingTime: b.arrivalTime || "N/A",
+            departureTime: b.departureTime || "N/A",
+            arrivalTime: b.arrivalTime || "N/A",
             fare: b.totalPrice / (b.selectedSeats?.length || 1),
             busType: b.busType || "N/A",
             busNumber: b.busNumber || "N/A",
@@ -57,6 +64,7 @@ const [selectedSeats, setSelectedSeats] = useState(stateSeats || []);
             bookingId: b.bookingId,
             totalPrice: b.totalPrice,
             paymentDone: b.paymentDone,
+            selectedSeats: b.selectedSeats || []
           });
           setPaymentDone(b.paymentDone);
         }
@@ -66,7 +74,7 @@ const [selectedSeats, setSelectedSeats] = useState(stateSeats || []);
       }
     };
 
-    fetchBooking();
+    if (stateBookingId) fetchBooking();
   }, [stateBookingId]);
 
   if (!selectedBus || !tripId || !selectedSeats || !userId) {
@@ -79,6 +87,7 @@ const [selectedSeats, setSelectedSeats] = useState(stateSeats || []);
 
   const getTodayDate = () => new Date().toISOString().split("T")[0];
 
+  // Create booking
   const handleCreateBooking = async () => {
     const bookingDto = {
       userId: parseInt(userId),
@@ -98,6 +107,7 @@ const [selectedSeats, setSelectedSeats] = useState(stateSeats || []);
           bookingId: res.data.bookingId,
           totalPrice: res.data.totalPrice,
           paymentDone: res.data.paymentDone,
+          selectedSeats: selectedSeats
         });
         setError("");
       } else {
@@ -108,6 +118,7 @@ const [selectedSeats, setSelectedSeats] = useState(stateSeats || []);
     }
   };
 
+  
   const handlePayment = async () => {
     if (!booking || !booking.bookingId) {
       setError("Create booking first.");
@@ -122,12 +133,30 @@ const [selectedSeats, setSelectedSeats] = useState(stateSeats || []);
 
     try {
       const res = await PaymentService.makePayment(paymentDto);
+
       setPaymentDone(true);
       setBooking({ ...booking, paymentDone: true });
       setError("");
+
       alert("Payment successful!");
-      navigate("/confirmation", { state: { booking: booking, payment: res.data } });
+
+      
+      navigate("/confirmation", {
+        state: {
+          booking: {
+            ...booking,
+            origin,
+            destination,
+            date,
+            busName: selectedBus.busName,
+            selectedSeats: selectedSeats
+          },
+          payment: res.data
+        }
+      });
+
     } catch (err) {
+      console.error(err);
       setError("Payment failed. Try again.");
     }
   };
@@ -223,6 +252,7 @@ const [selectedSeats, setSelectedSeats] = useState(stateSeats || []);
         Booking & Payment
       </h2>
 
+      
       <div
         style={{
           marginBottom: "20px",
@@ -237,14 +267,15 @@ const [selectedSeats, setSelectedSeats] = useState(stateSeats || []);
         </h3>
         <p style={{ margin: "0", color: "#666" }}>Bus Type: {selectedBus.busType}</p>
         <p style={{ margin: "0", color: "#666" }}>Bus Number: {selectedBus.busNumber}</p>
-        <p style={{ margin: "0", color: "#666" }}>Start Time: {selectedBus.startingTime}</p>
-        <p style={{ margin: "0", color: "#666" }}>End Time: {selectedBus.endingTime}</p>
+        <p style={{ margin: "0", color: "#666" }}>Start Time: {selectedBus.departureTime}</p>
+        <p style={{ margin: "0", color: "#666" }}>End Time: {selectedBus.arrivalTime}</p>
         <p style={{ margin: "5px 0 0 0", color: "#666" }}>Trip ID: {tripId}</p>
         <p style={{ margin: "5px 0 0 0", color: "#666" }}>
           Seats: {selectedSeats.join(", ")}
         </p>
       </div>
 
+      
       {!booking && (
         <button
           onClick={handleCreateBooking}
@@ -264,6 +295,7 @@ const [selectedSeats, setSelectedSeats] = useState(stateSeats || []);
         </button>
       )}
 
+      
       {booking && !paymentDone && !booking.paymentDone && (
         <div style={{ marginTop: "30px" }}>
           <h3 style={{ color: "#555", marginBottom: "15px" }}>Payment</h3>
@@ -310,6 +342,7 @@ const [selectedSeats, setSelectedSeats] = useState(stateSeats || []);
         </div>
       )}
 
+      
       {booking?.paymentDone || paymentDone ? (
         <p
           style={{
@@ -329,4 +362,3 @@ const [selectedSeats, setSelectedSeats] = useState(stateSeats || []);
     </div>
   );
 }
-

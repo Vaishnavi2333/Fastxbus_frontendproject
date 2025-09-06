@@ -1,7 +1,6 @@
 import { useState } from "react";
 import AuthService from "../../service/AuthService";
 import { useNavigate } from "react-router";
-
 export default function RegisterPage() {
   const [role, setRole] = useState("user");
   const [formData, setFormData] = useState({
@@ -21,7 +20,6 @@ export default function RegisterPage() {
       checkPasswordStrength(value);
     }
   };
-
 
   const checkPasswordStrength = (password) => {
     let strength = "";
@@ -53,9 +51,9 @@ export default function RegisterPage() {
         throw new Error("Invalid role selected");
       }
 
-     setSuccess(`Registered successfully!`);
+      setSuccess(`Registered successfully! Redirecting to login...`);
 
-     
+      
       setTimeout(() => navigate("/login"), 2000);
     } catch (err) {
       console.error(err);
@@ -80,7 +78,7 @@ export default function RegisterPage() {
             <p className="text-muted">Register your account</p>
           </div>
 
-         {error && <div className="alert alert-danger">{error}</div>}
+          {error && <div className="alert alert-danger">{error}</div>}
           {success && <div className="alert alert-success">{success}</div>}
 
           <form onSubmit={handleRegister}>
@@ -139,6 +137,17 @@ export default function RegisterPage() {
             <button className="btn btn-success w-100" type="submit">
               Register
             </button>
+
+            
+            <div className="text-center mt-3">
+              <button
+                type="button"
+                className="btn btn-link p-0"
+                onClick={() => navigate("/login")}
+              >
+                Already have an account? Login
+              </button>
+            </div>
           </form>
         </div>
       </div>

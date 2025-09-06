@@ -2,14 +2,14 @@ import { useState } from "react";
 import { useNavigate } from "react-router";
 import AuthService from "../../service/AuthService";
 
+import UserService from "../../service/UserService";
+
+
+
 export default function LoginPage() {
   const [role, setRole] = useState("user");
-  const [credentials, setCredentials] = useState({
-    username: "",
-    password: "",
-  });
+  const [credentials, setCredentials] = useState({ username: "", password: "" });
   const [error, setError] = useState("");
-
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -18,42 +18,94 @@ export default function LoginPage() {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setError(""); 
+    setError("");
 
     try {
+      let userIdOrOpId = null;
+
+      
       if (role === "user") {
         const { token, userId } = await AuthService.loginUser(credentials);
         localStorage.setItem("token", token);
         localStorage.setItem("userId", userId);
         localStorage.setItem("username", credentials.username);
         localStorage.setItem("role", role);
-        navigate("/user/dashboard");
+        userIdOrOpId = userId;
       } else if (role === "busoperator") {
         const { token, busOpId } = await AuthService.loginBusOperator(credentials);
         localStorage.setItem("token", token);
         localStorage.setItem("busOpId", busOpId);
         localStorage.setItem("username", credentials.username);
         localStorage.setItem("role", role);
-        navigate("/busoperator/dashboard");
+        userIdOrOpId = busOpId;
       } else {
         const response = await AuthService.loginAdmin(credentials);
         localStorage.setItem("token", response.data);
         localStorage.setItem("role", role);
         localStorage.setItem("username", credentials.username);
+      }
+
+     
+      window.dispatchEvent(new Event("storageUpdated"));
+
+     
+      if (role === "user") {
+        let hasProfile = false;
+
+        try {
+          const profileResponse = await UserService.getUserById(userIdOrOpId);
+          const data = profileResponse.data;
+
+         
+          hasProfile = !!(data && (data.email || data.dateOfBirth));
+
+          localStorage.setItem("profileComplete", hasProfile ? "true" : "false");
+        } catch (err) {
+          console.error("Error fetching profile:", err);
+          localStorage.setItem("profileComplete", "false");
+        }
+
+        const pendingBooking = sessionStorage.getItem("pendingBooking");
+
+        if (!hasProfile) {
+          
+          navigate("/userprofile", {
+            state: pendingBooking ? { fromBooking: true } : {},
+          });
+          return;
+        }
+
+        if (pendingBooking) {
+         
+          const bookingData = JSON.parse(pendingBooking);
+          sessionStorage.removeItem("pendingBooking");
+          navigate("/booking", {
+            state: {
+              ...bookingData,
+              userId: parseInt(localStorage.getItem("userId")),
+            },
+          });
+          return;
+        }
+
+       
+        navigate("/user/dashboard");
+        return;
+      }
+
+     
+      if (role === "busoperator") {
+        navigate("/busoperator/dashboard");
+      } else if (role === "admin") {
         navigate("/admin/dashboard");
       }
 
-    
-      window.dispatchEvent(new Event("storageUpdated"));
     } catch (err) {
       console.error("Login error:", err);
-
-      
       const backendMessage =
         err.response?.data?.message ||
         err.response?.data ||
         "Login failed! Invalid username or password.";
-
       setError(backendMessage);
     }
   };
@@ -120,6 +172,7 @@ export default function LoginPage() {
             <button className="btn btn-primary w-100" type="submit">
               Login
             </button>
+
             <div className="text-center mt-3">
               <button
                 type="button"
@@ -130,9 +183,20 @@ export default function LoginPage() {
               </button>
             </div>
 
+            <div className="text-center mt-2">
+              <span>Don’t have an account? </span>
+              <button
+                type="button"
+                className="btn btn-link p-0"
+                onClick={() => navigate("/register")}
+              >
+                Create one
+              </button>
+            </div>
           </form>
         </div>
       </div>
     </div>
   );
 }
+

@@ -43,16 +43,12 @@ export function Routing() {
   };
 
   useEffect(() => {
-    
     const updateStateFromStorage = () => {
       setUsername(localStorage.getItem("username") || "");
       setRole(localStorage.getItem("role") || "");
     };
 
-   
     window.addEventListener("storageUpdated", updateStateFromStorage);
-
-   
     updateStateFromStorage();
 
     return () => {
@@ -126,30 +122,29 @@ export function Routing() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/user/dashboard" element={<UserDashboard />} />
           <Route path="/busoperator/dashboard" element={<BusOperatorDashboard />} />
-         
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
           <Route path="/userprofile" element={<UserProfilePage />} />
           <Route path="/busopprofile" element={<BusOpProfile />} />
           <Route path="/addbus" element={<AddBus />} />
-          <Route path="/addroute" element={<AddRoute></AddRoute>}></Route>
+          <Route path="/addroute" element={<AddRoute />} />
           <Route path="/addtrip" element={<AddTrip />} />
           <Route path="/searchbus" element={<SearchBus />} />
           <Route path="/booking" element={<BookingPage />} />
           <Route path="/confirmation" element={<ConfirmationPage />} />
           <Route path="/mybookings" element={<MyBookings />} />
           <Route path="/busoperator/bookings" element={<BusOperatorBookings />} />
-           <Route path="/busoperator/buses" element={<BusOperatorBuses />} />
-           <Route path="/admin/dashboard" element={<AdminDashboard />} />
-           <Route path="/bus-operators" element={<BusOperatorPage />} />
-           <Route path="/usermanage" element={<UserManagementPage></UserManagementPage>}></Route>
-           <Route path="/adminbooking" element={<AdminBookingsPage></AdminBookingsPage>}></Route>
-           <Route path="/routebusop" element={<BusOperatorRoutes></BusOperatorRoutes>}></Route>
-           <Route path="/tripbusop" element={<BusOperatorTrips></BusOperatorTrips>}></Route>
-           <Route path="/adminroute" element={<AdminRoutes></AdminRoutes>}></Route>
-           <Route path="/admintrip" element={<AdminTrips></AdminTrips>}></Route>
-           <Route path="/adminbus" element={<AdminBusManagement></AdminBusManagement>}></Route>
-           <Route path="/adminviewbusop" element={<BusOperatorPage></BusOperatorPage>}></Route>
-            <Route path="/bus-operator-approvals" element={<BusOperatorApproval />} /> 
-            <Route path="/forgot-password" element={<ForgotPasswordPage></ForgotPasswordPage>}></Route>
+          <Route path="/busoperator/buses" element={<BusOperatorBuses />} />
+          <Route path="/bus-operators" element={<BusOperatorPage />} />
+          <Route path="/usermanage" element={<UserManagementPage />} />
+          <Route path="/adminbooking" element={<AdminBookingsPage />} />
+          <Route path="/routebusop" element={<BusOperatorRoutes />} />
+          <Route path="/tripbusop" element={<BusOperatorTrips />} />
+          <Route path="/adminroute" element={<AdminRoutes />} />
+          <Route path="/admintrip" element={<AdminTrips />} />
+          <Route path="/adminbus" element={<AdminBusManagement />} />
+          <Route path="/adminviewbusop" element={<BusOperatorPage />} />
+          <Route path="/bus-operator-approvals" element={<BusOperatorApproval />} /> 
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         </Routes>
       </div>
     </>
